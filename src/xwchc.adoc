@@ -1,0 +1,69 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright (c) 2024 Nanjing Qinheng Microelectronics Co., Ltd.
+[#xwchc]
+== "xwchc" Custom Extension for Compressed Byte and Halfword Load/Store
+
+=== Introduction
+
+In embedded microcontroller (MCU) applications, double-precision 64-bit floating-point arithmetic is rarely practical and is typically omitted from hardware implementations. However, byte (`uint8_t` / `int8_t`) and halfword (`uint16_t` / `int16_t`) data manipulations are exceptionally frequent in embedded control logic, communication buffers (UART, SPI, I2C, USB, CAN), and memory-mapped peripheral I/O access.
+
+To maximize code density for cost-sensitive embedded applications, QinHeng (WCH) defines the *xwchc* vendor ISA extension across some of its QingKe series RISC-V processor cores, implemented in CH32V series microcontrollers, to introduce 8 high-density 16-bit compressed byte and halfword load and store instructions.
+
+:huawei-ldst-bh: https://github.com/riscvarchive/riscv-code-size-reduction/blob/main/existing_extensions/Huawei%20Custom%20Extension/riscv_ldst_bh_extension.rst
+:xw-encoding-specs: https://web.archive.org/web/20251121133229/https://discourse.llvm.org/t/rfc-supporting-wch-qingke-xw-compressed-opcodes/79392/12
+
+Some *xwchc* opcodes (`qk.c.lbu`, `qk.c.lhu`, `qk.c.sb`, `qk.c.sh`) replace the standard RISC-V Compressed opcodes for double-precision floating-point load and store operations (`Zcd`), and they also appear to be compatible with "Huawei" extensions mentioned {huawei-ldst-bh}[here], noted by ArcaneNibble.
+
+:zcb-encoding-specs: https://github.com/riscvarchive/riscv-code-size-reduction/blob/main/Zc-specification/Zc.adoc#19-zcb
+QinHeng also introduces `qk.c.lbusp`, `qk.c.lhusp`, `qk.c.sbsp` and `qk.c.shsp` in the reserved `funct3 = 100` encoding space, later used by the standard {zcb-encoding-specs}[`Zcb` extension] (`c.lbu`, `c.lhu`, `c.lh`) with a similar goal after 2023.
+
+The original *xw* specifications from QinHeng can be found {xw-encoding-specs}[here].
+
+==== Applicability
+The following instructions comprise the xwchc extension:
+
+[cols="^2,^2,8,4,10",stripes=even,options="header"]
+|===
+| RV32 | RV64 | Mnemonic                                                      | Replaced            | Description
+| Y    | N    | <<#qk_c_lbu,`qk.c.lbu _rdpass:[`]_, _uimm_(_rs1pass:[`]_)`>>  | `c.fld`             | Compressed load unsigned byte
+| Y    | N    | <<#qk_c_lhu,`qk.c.lhu _rdpass:[`]_, _uimm_(_rs1 pass:[`]_)`>> | `c.fldsp`           | Compressed load unsigned halfword
+| Y    | N    | <<#qk_c_sb,`qk.c.sb _rs2pass:[`]_, _uimm_(_rs1pass:[`]_)`>>   | `c.fsd`             | Compressed store byte
+| Y    | N    | <<#qk_c_sh,`qk.c.sh _rs2pass:[`]_, _uimm_(_rs1pass:[`]_)`>>   | `c.fsdsp`           | Compressed store halfword
+| Y    | N    | <<#qk_c_lbusp,`qk.c.lbusp _rdpass:[`]_, _uimm_(_sp_)`>>       | `c.lbu` and `c.lhu` | Compressed load unsigned byte, `sp`-relative
+| Y    | N    | <<#qk_c_lhusp,`qk.c.lhusp _rdpass:[`]_, _uimm_(_sp_)`>>       | `c.lbu` and `c.lhu` | Compressed load unsigned halfword, `sp`-relative
+| Y    | N    | <<#qk_c_sbsp,`qk.c.sbsp _rs2pass:[`]_, _uimm_(_sp_)`>>        | `c.lbu` and `c.lh`  | Compressed store byte, `sp`-relative
+| Y    | N    | <<#qk_c_shsp,`qk.c.shsp _rs2pass:[`]_, _uimm_(_sp_)`>>        | `c.lbu` and `c.lh`  | Compressed store halfword, `sp`-relative
+|===
+
+[Note]
+  All current QingKe cores by QinHeng implement RV32 and are designed as 32-bit only, so the RV64 column is marked "N".
+
+==== Immediate Value Reconstruction & Zero-Extension Rule
+* For byte instructions (`qk.c.lbu`, `qk.c.sb`, `qk.c.lbusp`, `qk.c.sbsp`), all immediate offset bits down to bit 0 are explicitly encoded.
+* For halfword instructions (`qk.c.lhu`, `qk.c.sh`, `qk.c.lhusp`, `qk.c.shsp`), the least-significant bit `uimm[0]` is omitted from the instruction encoding and implicitly evaluates to `0` to enforce 2-byte (halfword) alignment.
+* All reconstructed immediate values are treated as unsigned offsets (`uimm`) and zero-extended to `XLEN`.
+
+[cols="^2,^3,^3,^4",options="header"]
+|===
+| Instruction  | Encoded IMM Bits | Effective `uimm` Range | Granularity / Alignment
+| `qk.c.lbu`   | `uimm[4:0]`      | 0 .. 31 bytes          | 1-byte
+| `qk.c.lbusp` | `uimm[3:0]`      | 0 .. 15 bytes          | 1-byte
+| `qk.c.lhu`   | `uimm[5:1]`      | 0 .. 62 bytes          | 2-byte (halfword)
+| `qk.c.lhusp` | `uimm[4:1]`      | 0 .. 30 bytes          | 2-byte (halfword)
+| `qk.c.sb`    | `uimm[4:0]`      | 0 .. 31 bytes          | 1-byte
+| `qk.c.sbsp`  | `uimm[3:0]`      | 0 .. 15 bytes          | 1-byte
+| `qk.c.sh`    | `uimm[5:1]`      | 0 .. 62 bytes          | 2-byte (halfword)
+| `qk.c.shsp`  | `uimm[4:1]`      | 0 .. 30 bytes          | 2-byte (halfword)
+|===
+
+=== Instructions
+
+include::xwchc/qk.c.lbu.adoc[]
+include::xwchc/qk.c.lbusp.adoc[]
+include::xwchc/qk.c.lhu.adoc[]
+include::xwchc/qk.c.lhusp.adoc[]
+
+include::xwchc/qk.c.sb.adoc[]
+include::xwchc/qk.c.sbsp.adoc[]
+include::xwchc/qk.c.sh.adoc[]
+include::xwchc/qk.c.shsp.adoc[]

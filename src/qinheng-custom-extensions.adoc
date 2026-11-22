@@ -1,0 +1,107 @@
+[[qinheng-custom-extensions]]
+= QingKe Custom Instructions: Custom ISA Extensions for QinHeng RISC-V Cores
+:revdate: 2022-04
+:revnumber: 2.2
+:revremark: QinHeng Custom ISA Specification
+:doctype: book
+:idprefix:
+:idseparator: -
+:compress:
+:experimental:
+:reproducible:
+:icons: font
+:lang: en
+:listing-caption: Listing
+:sectnums:
+:toc: left
+:toclevels: 4
+:data-uri:
+:hide-uri-scheme:
+:stem:
+:footnote:
+:xrefstyle: short
+:source-highlighter: pygments
+ifdef::backend-pdf[]
+:source-highlighter: coderay
+endif::[]
+
+[preface]
+== Front matter
+
+=== Copyright and Disclaimer
+
+Copyright © 2026 Community Contributors.
+
+This documentation is maintained independently by community contributors and is not affiliated with, endorsed by, sponsored by, or officially associated with Nanjing Qinheng Microelectronics Co., Ltd. (WCH), or any of its subsidiaries or affiliates.
+
+All documentation content, including instruction encoding descriptions, technical analyses, and reverse-engineered findings, is provided for informational and educational purposes. Unless explicitly stated otherwise, it should not be considered official WCH documentation or a vendor-supported specification.
+
+WCH, QingKe, and other relevant product names and trademarks are the property of their respective owners. Their use in this documentation is solely for identification and descriptive purposes and does not imply endorsement or affiliation.
+
+The copyright and licensing terms of this documentation do not grant rights to third-party trademarks, proprietary specifications, or other materials belonging to their respective owners.
+
+=== Contributors
+
+The list below includes all contributors to this document in alphabetical order:
+
+:xwchc-llvm: https://github.com/llvm/llvm-project/commit/3c5f929
+:xwchc-encoding: https://gist.github.com/ArcaneNibble/461edd3bc88a5284098d48941172bfa4
+:xwchc-official-encoding: https://web.archive.org/web/20251121133229/https://discourse.llvm.org/t/rfc-supporting-wch-qingke-xw-compressed-opcodes/79392/12
+
+[%hardbreaks]
+* ArcaneNibble's {xwchc-encoding}[initial investigation] and port to {xwchc-llvm}[LLVM] <r@arcanenibble.com>
+* Wang Pengcheng "wangpc-pp" for the invaluable {xwchc-official-encoding}[specification] from WCH <wangpengcheng.pp@bytedance.com>
+* Andy Lin for this documentation <andylinpersonal@gmail.com>
+
+=== Overview
+
+:qingke-processors: https://wch.cn/products/QingKe.html
+:qingke-v2: https://www.wch.cn/downloads/QingKeV2_Processor_Manual_PDF.html
+:qingke-v3: https://www.wch.cn/downloads/QingKeV3_Processor_Manual_PDF.html
+:qingke-v4: https://www.wch.cn/downloads/QingKeV4_Processor_Manual_PDF.html
+:qingke-v5: https://www.wch.cn/downloads/QingKeV5_Processor_Manual_PDF.html
+
+This specification documents the vendor-defined ISA extensions implemented in QinHeng's {qingke-processors}[QingKe series] 32-bit RISC-V processor cores. e.g., QingKe {qingke-v2}[V2], {qingke-v3}[V3], {qingke-v4}[V4] and {qingke-v5}[V5] in CH32V/CH32X/CH32H/CHxxx series microcontrollers.
+
+=== Revision history
+
+[cols="1,7"]
+|===
+|Version | Description
+
+|1.0.0
+|Nov 2026 +
+Documenting the *xwchc* compressed extension for byte and halfword load/store.
+|===
+
+== Custom Extensions
+
+This document describes the custom ISA extensions defined by QinHeng. To avoid conflicts between mnemonics defined by different implementors of custom RISC-V extensions, each vendor-defined mnemonic is prefixed with a vendor-specific identifier in the form as `<vendor prefix> . <mnemonic basename>`. The vendor prefix for all mnemonics defined by community is `qk` (e.g., the `c.lbu`
+instruction becomes `qk.c.lbu`).
+
+include::xwchc.adoc[]
+
+== Supported Extensions (by core)
+
+This chapter lists the custom extensions supported by QingKe core families.
+
+[#qingke,reftext="QingKe Cores"]
+=== QingKe Cores
+
+[cols="^2,^4",options="header"]
+|===
+| Core                    | xwchc
+| {qingke-v2}[QingKe V2A] | <<#xwchc,Supported>>
+| {qingke-v2}[QingKe V2C] | <<#xwchc,Supported>>
+| {qingke-v3}[QingKe V3A] | N/A
+| {qingke-v3}[QingKe V3B] | <<#xwchc,Supported>>
+| {qingke-v3}[QingKe V3C] | <<#xwchc,Supported>>
+| {qingke-v3}[QingKe V3F] | <<#xwchc,Supported>>
+| {qingke-v3}[QingKe V3V] | <<#xwchc,Supported>>
+| {qingke-v4}[QingKe V4A] | N/A
+| {qingke-v4}[QingKe V4B] | <<#xwchc,Supported>>
+| {qingke-v4}[QingKe V4C] | <<#xwchc,Supported>>
+| {qingke-v4}[QingKe V4F] | <<#xwchc,Supported>>
+| {qingke-v4}[QingKe V4J] | <<#xwchc,Supported>>
+| {qingke-v5}[QingKe V5F] | <<#xwchc,Supported>>
+|===

@@ -1,0 +1,42 @@
+<<<
+[#qk_c_sbsp]
+==== qk.c.sbsp
+
+Synopsis::
+Store byte to stack, compressed (stack pointer-relative).
+
+Mnemonic::
+qk.c.sbsp _rs2pass:[`]_, _uimm_(_sp_)
+
+Encoding::
+[wavedrom, , svg]
+....
+{reg: [
+  {bits: 2, name: 0x0, attr: ['OP']},
+  {bits: 3, name: 'rs2`', attr: ['x8-x15']},
+  {bits: 2, name: 0x2, attr: ['FUNCT2']},
+  {bits: 4, name: 'uimm[3:0]'},
+  {bits: 2, name: 0x0},
+  {bits: 3, name: 0x4, attr: ['FUNCT3']}
+], config: {bits: 16}}
+....
+
+The immediate offset is formed as follows:
+
+[source,sail]
+--
+  uimm[XLEN-1:4] = 0;
+  uimm[3:0]      = encoding[10:7];
+--
+
+Description::
+This instruction stores the least significant byte of _rs2pass:[`]_ to the memory address formed by adding _sp_ to the zero-extended immediate _uimm_.
+
+[NOTE]
+  _rs2pass:[`]_ is from the standard 8-register set x8-x15.
+
+Operation::
+[source,pseudo]
+----
+mem[X(sp)+EXTZ(uimm)][7..0] = X(rs2c);
+----

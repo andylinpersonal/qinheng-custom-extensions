@@ -1,0 +1,44 @@
+<<<
+[#qk_c_shsp]
+==== qk.c.shsp
+
+Synopsis::
+Store halfword to stack, compressed (stack pointer-relative).
+
+Mnemonic::
+qk.c.shsp _rs2pass:[`]_, _uimm_(_sp_)
+
+Encoding::
+[wavedrom, , svg]
+....
+{reg: [
+  {bits: 2, name: 0, attr: ['OP']},
+  {bits: 3, name: 'rs2`', attr: ['x8-x15']},
+  {bits: 2, name: 0x3, attr: ['FUNCT2']},
+  {bits: 4, name: 'uimm[3:1|4]'},
+  {bits: 2, name: 0x0},
+  {bits: 3, name: 0x4, attr: ['FUNCT3']}
+], config: {bits: 16}}
+....
+
+The immediate offset is formed as follows:
+
+[source,sail]
+--
+  uimm[XLEN-1:5] = 0;
+  uimm[4]        = encoding[7];
+  uimm[3:1]      = encoding[10:8];
+  uimm[0]        = 0;
+--
+
+Description::
+This instruction stores the lower halfword of _rs2pass:[`]_ to the memory address formed by adding _sp_ to the zero-extended immediate _uimm_.
+
+[NOTE]
+  _rs2pass:[`]_ is from the standard 8-register set x8-x15.
+
+Operation::
+[source,pseudo]
+----
+mem[X(sp)+EXTZ(uimm)][15..0] = X(rs2c);
+----
